@@ -164,26 +164,18 @@ packages:
     dependency: "direct main"
     description:
       name: hand_landmarker
-      sha256: e8d79563599807b680d0147729fd8560233acc5774d171f9960e4802d5217a64
+      sha256: c4cc26a6cd805e8586479eb0fc6e015c3bdfe98da8d8cbb0d49e845fb32bf3d8
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0"
-  integral_isolates:
-    dependency: transitive
-    description:
-      name: integral_isolates
-      sha256: "62b1b45ea6350edc92d555aa1a98cbda09836b42e51e19e39d49bc39a686e601"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.5.1"
+    version: "2.2.0"
   jni:
     dependency: transitive
     description:
       name: jni
-      sha256: d2c361082d554d4593c3012e26f6b188f902acd291330f13d6427641a92b3da1
+      sha256: "8706a77e94c76fe9ec9315e18949cc9479cc03af97085ca9c1077b61323ea12d"
       url: "https://pub.dev"
     source: hosted
-    version: "0.14.2"
+    version: "0.15.2"
   leak_tracker:
     dependency: transitive
     description:
@@ -367,4 +359,4 @@ packages:
     version: "1.1.1"
 sdks:
   dart: ">=3.11.3 <4.0.0"
-  flutter: ">=3.35.0"
+  flutter: ">=3.35.6"

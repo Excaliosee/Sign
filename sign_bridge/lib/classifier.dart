@@ -20,14 +20,17 @@ class Classifier {
 
     if (_interpreter == null) return "Model not loaded";
     var input = [Float32List.fromList(handLandmarkers)];
-    var output = List<double>.filled(26, 0).reshape([1, 26]);
+    var output = List<double>.filled(5, 0).reshape([1, 5]);
 
     try {
       _interpreter!.run(input, output);
     }
     catch (e) {
+      print("TFLite Interpreter Error: $e");
       return "Error: $e";
     }
+
+    if (output.isEmpty) return "Empty Output";
 
     List<double> predictions = List<double>.from(output[0]);
     int bestIndex = 0;
