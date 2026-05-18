@@ -26,9 +26,12 @@ cap = cv2.VideoCapture(0)
 
 print("Collecting Data")
 print("Instructions")
-print("Hold 0-4 to save data for that sign. Press 'q' to quit.")
+print("Hold corresponding letter to save data for that sign. Press 'q' to quit.")
 
-counters = {str(i): 0 for i in range(5)}
+target_letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K']
+counters = {letter: 0 for letter in target_letters}
+
+data_buffer = []
 
 while cap.isOpened():
     ret, frame = cap.read()
@@ -39,34 +42,44 @@ while cap.isOpened():
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     results = hands.process(rgb_frame)
 
+    key = cv2.waitKey(1) & 0xFF
+    key_char = chr(key).upper() if key != 255 else None
+
     if results.multi_hand_landmarks:
-        for hand_landmarks in results.multi_hand_landmarks:
+        for i, hand_landmarks in enumerate(results.multi_hand_landmarks):
             mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-            landmarks = []
-            for lm in hand_landmarks.landmark:
-                landmarks.extend([lm.x, lm.y, lm.z])
+            hand_label = results.multi_handedness[i].classification[0].label
+            if key_char in counters:
+                landmarks = []
+                
+                for lm in hand_landmarks.landmark:
+                    x_coor = 1.0 - lm.x if hand_label == "Left" else lm.x
+                    landmarks.extend([x_coor, lm.y, lm.z])
 
-            key = cv2.waitKey(1) & 0xFF
-            if chr(key) in counters:
-                label = chr(key)
-                with open(file_name, 'a', newline='') as f:
-                    writer = csv.writer(f)
-                    writer.writerow([label] + landmarks)
+                data_buffer.append([key_char] + landmarks)
 
-                counters[label] += 1
-                print(f"Caputed {label}: {counters[label]} samples", end="\r")
+                counters[key_char] += 1
+                print(f"Captured {key_char} ({hand_label}): {counters[key_char]} samples", end="\r")
 
-    y_pos = 30
-    for label, count in counters.items():
-        cv2.putText(frame, f"Sign {label}: {count}", (10, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
-        y_pos += 25
+    if key_char in counters:
+        count = counters[key_char]
+        color = (0, 255, 0) if count >= 800 else (0, 255, 255)
+        cv2.rectangle(frame, (10, 10), (280, 50), (0,0,0), -1)
+        cv2.putText(frame, f"Recording '{key_char}': {count}/800", (20,35), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+    else:
+        cv2.putText(frame, "Ready - Hold a key", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
 
     cv2.imshow("SignBridge Collector", frame)
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    if key_char == 'Q':
         break
 
 cap.release()
 cv2.destroyAllWindows()
+
+if data_buffer:
+    print(f"Saving samples")
+    with open(file_name, 'a', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerows(data_buffer)
 print("finished")

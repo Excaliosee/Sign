@@ -34,6 +34,7 @@ class _CamPageState extends State<CamPage> {
     );
     
     final camera = await availableCameras();
+
     _cameraController = CameraController(
       camera.firstWhere((c) => c.lensDirection == CameraLensDirection.front), 
       ResolutionPreset.medium,
@@ -54,20 +55,29 @@ class _CamPageState extends State<CamPage> {
   }
 
  void _runInference(CameraImage image) {
+
   try {
+    int hardwareOrientation = _cameraController!.description.sensorOrientation;
+    print("Phone Hardware Orientation: $hardwareOrientation");
+    print("Streaming Frame: ${image.width}x${image.height}"); 
+
     final hands = _plugin!.detect(
       image,
       _cameraController!.description.sensorOrientation,
     );
 
+    print("MediaPipe Detected Hands Count: ${hands.length}");
+
     if (hands.isEmpty) {
       if (mounted) setState(() => _prediction = "Show your hand");
+      _isDetecting = false;
       return; 
     }
 
     final hand = hands.first;
 
     if (hand.landmarks.isEmpty) {
+      _isDetecting = false;
       return;
     }
 
@@ -79,7 +89,7 @@ class _CamPageState extends State<CamPage> {
     }
 
     if (landmarkData.length == 63) {
-      print("Landmark 0 (Wrist): ${landmarkData[0]}, ${landmarkData[1]}");
+      print("FLUTTER CHECK -> Wrist: (${landmarkData[0].toStringAsFixed(2)}, ${landmarkData[1].toStringAsFixed(2)}) | Index Tip: (${landmarkData[24].toStringAsFixed(2)}, ${landmarkData[25].toStringAsFixed(2)})");
       final result = _classifier.predict(landmarkData);
       if (mounted) {
         setState(() => _prediction = result);
